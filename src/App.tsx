@@ -11,6 +11,8 @@ import {
   X,
   ShieldCheck,
   Zap,
+  User,
+  LogOut,
 } from 'lucide-react';
 import {
   Ad,
@@ -32,6 +34,7 @@ import { CategoriesCarousel } from './components/CategoriesCarousel';
 import { FilterModal } from './components/FilterModal';
 import { AdminModal } from './components/AdminModal';
 import { AdminAuthModal } from './components/AdminAuthModal';
+import { UserAuthModal, UserAccount } from './components/UserAuthModal';
 
 export default function App() {
   // State for Ads & Query
@@ -76,6 +79,22 @@ export default function App() {
   // Favorites & User Posted Ads
   const [favorites, setFavorites] = useState<string[]>([]);
   const [myAdIds, setMyAdIds] = useState<string[]>([]);
+
+  // User Auth Account State
+  const [isUserAuthModalOpen, setIsUserAuthModalOpen] = useState(false);
+  const [userAccount, setUserAccount] = useState<UserAccount | null>(() => {
+    try {
+      const saved = localStorage.getItem('vixi_user_account');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('vixi_user_account');
+    setUserAccount(null);
+  };
 
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -331,70 +350,105 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F7F8F9] dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 flex flex-col">
       {/* 1. Main Header */}
-      <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 sm:px-6 shrink-0 z-20 shadow-xs sticky top-0">
-        <div className="flex items-center gap-6">
-          <a href="/" className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
-            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-sm">
-              V
-            </div>
-            <span>
-              VIXI
-            </span>
-          </a>
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20 shadow-xs sticky top-0">
+        {/* Row 1: Logo VIXI & User Account Auth Button */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60">
+          <div className="flex items-center gap-6">
+            <a href="/" className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-sm">
+                V
+              </div>
+              <span>VIXI</span>
+            </a>
 
-          {/* Quick Filter Navigation Tabs */}
-          <nav className="hidden lg:flex gap-5 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <button
-              onClick={() => handleSelectCategory('todos')}
-              className={`py-5 transition-colors ${
-                selectedCategory === 'todos' && !filters.planOnly
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
-                  : 'hover:text-emerald-600'
-              }`}
-            >
-              Comprar & Buscar
-            </button>
-            <button
-              onClick={() => handleSelectCategory('imoveis')}
-              className={`py-5 transition-colors ${
-                selectedCategory === 'imoveis'
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
-                  : 'hover:text-emerald-600'
-              }`}
-            >
-              Imóveis
-            </button>
-            <button
-              onClick={() => handleSelectCategory('veiculos')}
-              className={`py-5 transition-colors ${
-                selectedCategory === 'veiculos'
-                  ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
-                  : 'hover:text-emerald-600'
-              }`}
-            >
-              Veículos
-            </button>
-            <button
-              onClick={() => setFilters((prev) => ({ ...prev, planOnly: !prev.planOnly }))}
-              className={`py-5 flex items-center gap-1 ${
-                filters.planOnly ? 'text-amber-500 font-bold border-b-2 border-amber-500' : 'hover:text-amber-500'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Destaques Mercado Pago</span>
-            </button>
-          </nav>
+            {/* Quick Filter Navigation Tabs */}
+            <nav className="hidden lg:flex gap-5 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <button
+                onClick={() => handleSelectCategory('todos')}
+                className={`py-3.5 transition-colors ${
+                  selectedCategory === 'todos' && !filters.planOnly
+                    ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
+                    : 'hover:text-emerald-600'
+                }`}
+              >
+                Comprar & Buscar
+              </button>
+              <button
+                onClick={() => handleSelectCategory('imoveis')}
+                className={`py-3.5 transition-colors ${
+                  selectedCategory === 'imoveis'
+                    ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
+                    : 'hover:text-emerald-600'
+                }`}
+              >
+                Imóveis
+              </button>
+              <button
+                onClick={() => handleSelectCategory('veiculos')}
+                className={`py-3.5 transition-colors ${
+                  selectedCategory === 'veiculos'
+                    ? 'text-emerald-600 border-b-2 border-emerald-600 font-bold'
+                    : 'hover:text-emerald-600'
+                }`}
+              >
+                Veículos
+              </button>
+              <button
+                onClick={() => setFilters((prev) => ({ ...prev, planOnly: !prev.planOnly }))}
+                className={`py-3.5 flex items-center gap-1 ${
+                  filters.planOnly ? 'text-amber-500 font-bold border-b-2 border-amber-500' : 'hover:text-amber-500'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Destaques Mercado Pago</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* User Account / Login Button at Far Right */}
+          <div>
+            {userAccount ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsUserAuthModalOpen(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  <div className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-[11px]">
+                    {userAccount.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="max-w-[120px] truncate hidden sm:inline">{userAccount.name}</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-slate-400 hover:text-red-500 text-xs font-bold p-1.5 rounded-lg transition-colors"
+                  title="Sair da Conta"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsUserAuthModalOpen(true)}
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition-all shadow-xs border border-slate-800 active:scale-95"
+              >
+                <User className="w-4 h-4 text-emerald-400" />
+                <span className="hidden sm:inline">Entrar / Criar Conta</span>
+                <span className="sm:hidden text-[11px]">Entrar</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Header Search Input */}
-        <div className="flex-1 max-w-md mx-4">
-          <div className="relative">
+        {/* Row 2: Search Input & Action Icons (Favorites, My Ads, Announce Free) */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+          {/* Header Search Input */}
+          <div className="relative flex-1 min-w-[180px]">
             <input
               type="text"
-              placeholder="O que você procura hoje?"
+              placeholder="O que você procura hoje no VIXI?"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-xs font-medium focus:ring-2 focus:ring-emerald-500/20 text-slate-900 dark:text-white placeholder-slate-400 shadow-inner"
+              className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-2 pl-10 pr-8 text-xs font-medium focus:ring-2 focus:ring-emerald-500/20 text-slate-900 dark:text-white placeholder-slate-400 shadow-inner"
             />
             <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
             {searchQuery && (
@@ -406,42 +460,42 @@ export default function App() {
               </button>
             )}
           </div>
-        </div>
 
-        {/* Header CTA Actions */}
-        <div className="flex items-center gap-2.5">
-          {/* Favorites Button */}
-          <button
-            onClick={() => setIsFavoritesModalOpen(true)}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors"
-            title="Favoritos Salvos"
-          >
-            <Heart className="w-5 h-5" />
-            {favorites.length > 0 && (
-              <span className="absolute top-0 right-0 w-4 h-4 bg-pink-500 text-white font-bold text-[9px] rounded-full flex items-center justify-center">
-                {favorites.length}
-              </span>
-            )}
-          </button>
+          {/* Action Icons */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Favorites Button */}
+            <button
+              onClick={() => setIsFavoritesModalOpen(true)}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 relative transition-colors"
+              title="Favoritos Salvos"
+            >
+              <Heart className="w-4 h-4 text-slate-700 dark:text-slate-300" />
+              {favorites.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-white font-bold text-[9px] rounded-full flex items-center justify-center shadow-xs">
+                  {favorites.length}
+                </span>
+              )}
+            </button>
 
-          {/* My Ads Button */}
-          <button
-            onClick={() => setIsMyAdsModalOpen(true)}
-            className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 relative transition-colors hidden sm:block"
-            title="Meus Anúncios"
-          >
-            <ShoppingBag className="w-5 h-5 text-emerald-600" />
-          </button>
+            {/* My Ads Button */}
+            <button
+              onClick={() => setIsMyAdsModalOpen(true)}
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 relative transition-colors flex items-center gap-1.5 text-xs font-semibold"
+              title="Meus Anúncios"
+            >
+              <ShoppingBag className="w-4 h-4 text-emerald-600" />
+              <span className="hidden md:inline">Meus Anúncios</span>
+            </button>
 
-          {/* Announce Free Button */}
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-xs font-bold shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span className="hidden sm:inline">Anunciar Grátis</span>
-            <span className="sm:hidden">Anunciar</span>
-          </button>
+            {/* Announce Free Button */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Anunciar Grátis</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -602,6 +656,15 @@ export default function App() {
         filters={filters}
         onApplyFilters={(newFilters) => setFilters(newFilters)}
         onResetFilters={handleResetFilters}
+      />
+
+      <UserAuthModal
+        isOpen={isUserAuthModalOpen}
+        onClose={() => setIsUserAuthModalOpen(false)}
+        onLoginSuccess={(user) => {
+          setUserAccount(user);
+          setIsUserAuthModalOpen(false);
+        }}
       />
 
       <AdminAuthModal
