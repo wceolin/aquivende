@@ -1,0 +1,6 @@
+{
+  "name": "VIXI Classificados",
+  "description": "Plataforma de classificados VIXI moderna e rápida com anúncios gratuitos, filtros avançados e painel administrativo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
