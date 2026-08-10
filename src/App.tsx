@@ -13,6 +13,7 @@ import {
   Zap,
   User,
   LogOut,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   Ad,
@@ -333,6 +334,18 @@ export default function App() {
     });
   };
 
+  const handleReturnHome = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    handleResetFilters();
+    setSelectedAd(null);
+    setIsCreateModalOpen(false);
+    setIsFavoritesModalOpen(false);
+    setIsMyAdsModalOpen(false);
+    setIsAdminModalOpen(false);
+    setIsUserAuthModalOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Active Filter Count
   const activeFiltersCount =
     (filters.state !== 'todos' ? 1 : 0) +
@@ -345,6 +358,17 @@ export default function App() {
 
   const favoritedAdsObjects = ads.filter((a) => favorites.includes(a.id));
   const myAdsObjects = ads.filter((a) => myAdIds.includes(a.id));
+
+  const isHomePage =
+    selectedCategory === 'todas' &&
+    !searchQuery.trim() &&
+    filters.state === 'todos' &&
+    !selectedAd &&
+    !isCreateModalOpen &&
+    !isFavoritesModalOpen &&
+    !isMyAdsModalOpen &&
+    !isAdminModalOpen &&
+    !isUserAuthModalOpen;
   const featuredAdsCount = ads.filter((a) => a.plan !== 'gratuito').length;
 
   return (
@@ -354,12 +378,16 @@ export default function App() {
         {/* Row 1: Logo VIXI & User Account Auth Button */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60">
           <div className="flex items-center gap-6">
-            <a href="/" className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+            <button
+              onClick={handleReturnHome}
+              className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-90 transition-opacity cursor-pointer text-left focus:outline-none"
+              title="Voltar para a Página Inicial"
+            >
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-sm">
                 V
               </div>
               <span>VIXI</span>
-            </a>
+            </button>
 
             {/* Quick Filter Navigation Tabs */}
             <nav className="hidden lg:flex gap-5 text-xs font-semibold text-slate-500 dark:text-slate-400">
@@ -441,6 +469,18 @@ export default function App() {
 
         {/* Row 2: Search Input & Action Icons (Favorites, My Ads, Announce Free) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+          {/* Line 2 Back to Home Navigation Button (Only shown when not on home page) */}
+          {!isHomePage && (
+            <button
+              onClick={handleReturnHome}
+              className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95"
+              title="Voltar para a Página Inicial"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar ao Início</span>
+            </button>
+          )}
+
           {/* Header Search Input */}
           <div className="relative flex-1 min-w-[180px]">
             <input

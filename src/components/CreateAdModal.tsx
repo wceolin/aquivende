@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   Loader2,
+  ArrowLeft,
 } from 'lucide-react';
 import { CreateAdFormData, PlanType } from '../types';
 import { CATEGORIES, PLANS } from '../data/mockAds';
@@ -51,16 +52,22 @@ export const CreateAdModal: React.FC<CreateAdModalProps> = ({
   const [sellerPhone, setSellerPhone] = useState('');
   const [sellerWhatsapp, setSellerWhatsapp] = useState('');
   const [sellerEmail, setSellerEmail] = useState('');
-  const [city, setCity] = useState('São Paulo');
-  const [state, setState] = useState('SP');
-  const [neighborhood, setNeighborhood] = useState('Centro');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('ES');
+  const [neighborhood, setNeighborhood] = useState('');
 
   // Plan Selection
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('destaque_ouro');
 
   if (!isOpen) return null;
 
+  const maxImages = selectedPlan === 'gratuito' ? 3 : 7;
+
   const handleAddImageUrl = () => {
+    if (images.length >= maxImages) {
+      alert(`O plano ${selectedPlan === 'gratuito' ? 'Gratuito' : 'Pago'} permite no máximo ${maxImages} fotos. Escolha um plano de destaque para até 7 fotos.`);
+      return;
+    }
     if (imageUrlInput.trim() !== '') {
       setImages([...images, imageUrlInput.trim()]);
       setImageUrlInput('');
@@ -111,24 +118,49 @@ export const CreateAdModal: React.FC<CreateAdModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 flex items-center justify-between shrink-0 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
-              <PlusCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-black text-white">Criar Novo Anúncio</h2>
-              <p className="text-xs text-slate-300">
-                Anuncie grátis ou escolha um Plano de Destaque no Mercado Pago
-              </p>
-            </div>
+        <div className="bg-slate-900 text-white shrink-0 border-b border-slate-800">
+          {/* Line 1: Site logo VIXI and Close button */}
+          <div className="p-3 sm:px-5 flex items-center justify-between border-b border-slate-800/80">
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2 text-white hover:opacity-90 cursor-pointer"
+              title="Voltar para a Página Inicial"
+            >
+              <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-black text-base shadow-sm">
+                V
+              </div>
+              <span>VIXI</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              title="Fechar"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+
+          {/* Line 2: Navigation Back Row */}
+          <div className="p-3 sm:px-5 flex items-center justify-between bg-slate-950/60 flex-wrap gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Voltar ao Início</span>
+              </button>
+              <h2 className="text-sm font-bold text-white">Criar Anúncio</h2>
+            </div>
+
+            <span className="text-[11px] font-medium text-slate-300 hidden sm:inline">
+              Anuncie grátis ou escolha Destaque
+            </span>
+          </div>
         </div>
 
         {/* Scrollable Form */}
@@ -220,28 +252,81 @@ export const CreateAdModal: React.FC<CreateAdModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Photos Upload Simulation */}
+          {/* Section 2: Photos Upload */}
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-              <ImageIcon className="w-4 h-4 text-emerald-600" />
-              <span>2. Fotos do Anúncio</span>
-            </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <span>2. Fotos do Anúncio ({images.length}/{maxImages})</span>
+              </h3>
+              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
+                selectedPlan === 'gratuito'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+              }`}>
+                {selectedPlan === 'gratuito' ? 'Até 3 fotos no Plano Grátis' : 'Até 7 fotos no Plano Pago'}
+              </span>
+            </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input
                 type="text"
-                placeholder="Cole a URL da foto (ou use a imagem padrão pré-carregada)"
+                placeholder="Cole a URL da foto ou selecione do dispositivo ->"
                 value={imageUrlInput}
                 onChange={(e) => setImageUrlInput(e.target.value)}
-                className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none text-xs"
               />
-              <button
-                type="button"
-                onClick={handleAddImageUrl}
-                className="px-4 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700"
-              >
-                Adicionar Foto
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleAddImageUrl}
+                  className="px-3.5 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 text-xs shrink-0"
+                >
+                  Add URL
+                </button>
+
+                <label className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold cursor-pointer flex items-center gap-1.5 text-xs shrink-0 shadow-xs">
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Subir Foto</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (!files || files.length === 0) return;
+
+                      if (images.length >= maxImages) {
+                        alert(`O plano ${selectedPlan === 'gratuito' ? 'Gratuito' : 'Pago'} permite no máximo ${maxImages} fotos. Escolha um plano de destaque para até 7 fotos.`);
+                        return;
+                      }
+
+                      const slotsLeft = maxImages - images.length;
+                      const filesToLoad = Array.from(files).slice(0, slotsLeft);
+
+                      if (files.length > slotsLeft) {
+                        alert(`Você selecionou ${files.length} imagens. Foram carregadas apenas ${slotsLeft} para não ultrapassar o limite de ${maxImages} fotos do seu plano.`);
+                      }
+
+                      for (let i = 0; i < filesToLoad.length; i++) {
+                        const file = filesToLoad[i] as File;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const res = ev.target?.result as string;
+                          if (res) {
+                            setImages((prev) => {
+                              if (prev.length >= maxImages) return prev;
+                              return [...prev, res];
+                            });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2">
@@ -300,18 +385,14 @@ export const CreateAdModal: React.FC<CreateAdModalProps> = ({
                 <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Cidade *
                 </label>
-                <select
+                <input
+                  type="text"
+                  required
+                  placeholder="Digite sua cidade (ex: Vitória, Vila Velha, São Paulo...)"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
-                >
-                  <option value="São Paulo">São Paulo (SP)</option>
-                  <option value="Rio de Janeiro">Rio de Janeiro (RJ)</option>
-                  <option value="Curitiba">Curitiba (PR)</option>
-                  <option value="Belo Horizonte">Belo Horizonte (MG)</option>
-                  <option value="Porto Alegre">Porto Alegre (RS)</option>
-                  <option value="Florianópolis">Florianópolis (SC)</option>
-                </select>
+                />
               </div>
 
               <div>
@@ -320,7 +401,7 @@ export const CreateAdModal: React.FC<CreateAdModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Pinheiros, Jardins, Centro..."
+                  placeholder="Digite seu bairro (ex: Praia do Canto, Centro, Jardins...)"
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none"

@@ -28,48 +28,71 @@ export const UserAuthModal: React.FC<UserAuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-
+    try {
       if (activeTab === 'login') {
         if (!email || !password) {
           setErrorMsg('Por favor, preencha e-mail e senha.');
+          setLoading(false);
           return;
         }
         const userObj: UserAccount = {
           name: email.split('@')[0] || 'Usuário VIXI',
           email: email,
         };
+        
+        // Sync to Google Sheets
+        fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userObj),
+        }).catch((err) => console.error('Erro ao enviar para o Sheets:', err));
+
         localStorage.setItem('vixi_user_account', JSON.stringify(userObj));
+        setLoading(false);
         onLoginSuccess(userObj);
         onClose();
       } else {
         if (!name || !email || !password) {
           setErrorMsg('Por favor, preencha todos os campos.');
+          setLoading(false);
           return;
         }
         if (password.length < 6) {
           setErrorMsg('A senha deve ter pelo menos 6 caracteres.');
+          setLoading(false);
           return;
         }
         const userObj: UserAccount = {
           name: name,
           email: email,
         };
+
+        // Sync to Google Sheets
+        await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userObj),
+        }).catch((err) => console.error('Erro ao enviar para o Sheets:', err));
+
         localStorage.setItem('vixi_user_account', JSON.stringify(userObj));
-        setSuccessMsg('Conta criada com sucesso! Conectando...');
+        setSuccessMsg('Conta criada com sucesso e registrada na Planilha Google!');
+        setLoading(false);
         setTimeout(() => {
           onLoginSuccess(userObj);
           onClose();
         }, 1000);
       }
-    }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setErrorMsg('Erro de conexão com o servidor.');
+    }
   };
 
   return (

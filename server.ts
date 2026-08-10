@@ -5,6 +5,13 @@ import { createServer as createViteServer } from 'vite';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { Ad, CreateAdFormData, PlanType, MercadoPagoPreferenceRequest } from './src/types.js';
 import { INITIAL_ADS, PLANS } from './src/data/mockAds.js';
+import {
+  initGoogleSheets,
+  saveAdToSheets,
+  getAdsFromSheets,
+  uploadImageToDrive,
+  saveUserToSheets,
+} from './server/googleWorkspace.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,10 +20,13 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json({ limit: '15mb' }));
 
   // In-memory ads store initialized with mock data
   let adsList: Ad[] = [...INITIAL_ADS];
+
+  // Initialize Google Sheets tabs
+  initGoogleSheets().catch((err) => console.warn('Erro ao inicializar Google Sheets:', err));
 
   // Initialize Mercado Pago Config
   const mpAccessToken = process.env.MERCADOPAGO_ACCESS_TOKEN || 'TEST-0000000000000000-000000-0000000000000000-000000';
@@ -25,7 +35,7 @@ async function startServer() {
 
   // API Routes
   // 1. GET /api/ads - List and filter ads
-  app.get('/api/ads', (req, res) => {
+  app.get('/api/ads', async (req, res) => {
     try {
       const {
         query,
@@ -38,7 +48,23 @@ async function startServer() {
         sortBy = 'recentes',
       } = req.query;
 
-      let filtered = [...adsList].filter((ad) => ad.status === 'ativo');
+      // Sync with Google Sheets
+      const sheetAds = await getAdsFromSheets();
+      
+      // Combine memory list and sheet ads, prioritizing unique IDs
+      const allAdsMap = new Map<string, Ad>();
+      
+      // First put in-memory ads
+      for (const ad of adsList) {
+        allAdsMap.set(ad.id, ad);
+      }
+
+      // Then overwrite or add sheet ads
+      for (const ad of sheetAds) {
+        allAdsMap.set(ad.id, ad);
+      }
+
+      let filtered = Array.from(allAdsMap.values()).filter((ad) => ad.status === 'ativo');
 
       if (query && typeof query === 'string' && query.trim() !== '') {
         const q = query.toLowerCase().trim();
@@ -126,7 +152,7 @@ async function startServer() {
   });
 
   // 3. POST /api/ads - Create new ad
-  app.post('/api/ads', (req, res) => {
+  app.post('/api/ads', async (req, res) => {
     try {
       const body: CreateAdFormData = req.body;
 
@@ -134,7 +160,21 @@ async function startServer() {
         return res.status(400).json({ success: false, message: 'Título e Categoria são obrigatórios.' });
       }
 
-      const planConfig = PLANS[body.plan] || PLANS.gratuito;
+      // Process images - Upload base64 or custom images to Google Drive folder
+      let finalImages: string[] = [];
+      if (body.images && body.images.length > 0) {
+        for (let i = 0; i < body.images.length; i++) {
+          const img = body.images[i];
+          if (img.startsWith('data:image')) {
+            const driveUrl = await uploadImageToDrive(img, `${body.title.replace(/\s+/g, '_')}_${i}`);
+            finalImages.push(driveUrl);
+          } else {
+            finalImages.push(img);
+          }
+        }
+      } else {
+        finalImages = ['https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1000&q=80'];
+      }
 
       const newAd: Ad = {
         id: `ad-${Date.now()}`,
@@ -145,16 +185,14 @@ async function startServer() {
         category: body.category,
         subcategory: body.subcategory,
         condition: body.condition || 'seminovo',
-        images: body.images && body.images.length > 0 ? body.images : [
-          'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1000&q=80',
-        ],
+        images: finalImages,
         location: {
           city: body.city || 'São Paulo',
           state: body.state || 'SP',
           neighborhood: body.neighborhood || 'Centro',
         },
         seller: {
-          name: body.sellerName || 'Anunciante',
+          name: body.sellerName || 'Anunciante VIXI',
           phone: body.sellerPhone || '(11) 99999-9999',
           whatsapp: body.sellerWhatsapp ? body.sellerWhatsapp.replace(/\D/g, '') : '5511999999999',
           email: body.sellerEmail,
@@ -169,12 +207,32 @@ async function startServer() {
         paymentStatus: body.plan === 'gratuito' ? 'free' : 'pending',
       };
 
+      // Add to local memory
       adsList.unshift(newAd);
+
+      // Save row to Google Sheets
+      saveAdToSheets(newAd).catch((err) => console.error('Erro em segundo plano ao salvar no Sheets:', err));
 
       res.status(201).json({ success: true, data: newAd });
     } catch (err) {
       console.error('Error creating ad:', err);
       res.status(500).json({ success: false, message: 'Falha ao cadastrar o anúncio.' });
+    }
+  });
+
+  // 3.5. POST /api/users - Register or log user to Google Sheets
+  app.post('/api/users', async (req, res) => {
+    try {
+      const { name, email } = req.body;
+      if (!name || !email) {
+        return res.status(400).json({ success: false, message: 'Nome e E-mail são obrigatórios.' });
+      }
+
+      await saveUserToSheets({ name, email });
+      res.json({ success: true, message: 'Usuário registrado com sucesso no Google Sheets!' });
+    } catch (err) {
+      console.error('Error saving user:', err);
+      res.status(500).json({ success: false, message: 'Erro ao registrar usuário.' });
     }
   });
 

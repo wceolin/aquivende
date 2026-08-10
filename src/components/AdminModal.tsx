@@ -386,7 +386,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 </div>
               </div>
 
-              <div className="p-5 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-2">
+              <div className="p-5 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-xs text-slate-300">Receita Total de Destaques MP</span>
                   <span className="text-lg font-black text-emerald-400">
@@ -396,6 +396,43 @@ export const AdminModal: React.FC<AdminModalProps> = ({
                 <p className="text-[11px] text-slate-400">
                   Integrado via API Mercado Pago SDK v2 (Checkout Pro com PIX instantâneo e Cartão de Crédito).
                 </p>
+              </div>
+
+              {/* Google Sheets & Drive Integration Info */}
+              <div className="p-5 bg-slate-800/80 text-white rounded-2xl border border-slate-700/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold text-xs text-white">Google Sheets & Drive Integrados</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Ao Vivo
+                  </span>
+                </div>
+                
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Os anúncios, fotos e cadastros de usuários são sincronizados em tempo real com a sua planilha oficial do Google Sheets e pasta de imagens no Google Drive.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1qF_KYPqLoHuMh8gLA5pXXvqzPrKUj_ReCeFOQuEHZxs/edit?usp=sharing"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-center text-[11px] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span>📊 Abrir Planilha (Sheets)</span>
+                  </a>
+
+                  <a
+                    href="https://drive.google.com/drive/folders/1jJj0qnzg1mj4yCaJusoUaMcPx0rypu7a?usp=sharing"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-center text-[11px] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span>📁 Pasta de Fotos (Drive)</span>
+                  </a>
+                </div>
               </div>
             </div>
           )}

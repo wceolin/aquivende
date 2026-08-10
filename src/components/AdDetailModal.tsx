@@ -9,14 +9,11 @@ import {
   Eye,
   ShieldCheck,
   Share2,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  Zap,
-  CheckCircle2,
+  ArrowLeft,
 } from 'lucide-react';
 import { Ad } from '../types';
-import { PLANS } from '../data/mockAds';
 
 interface AdDetailModalProps {
   ad: Ad | null;
@@ -33,15 +30,11 @@ export const AdDetailModal: React.FC<AdDetailModalProps> = ({
   onClose,
   onToggleFavorite,
   isFavorite,
-  onUpgradePlan,
 }) => {
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
 
   if (!isOpen || !ad) return null;
-
-  const planInfo = PLANS[ad.plan] || PLANS.gratuito;
-  const isFeatured = ad.plan === 'destaque_ouro' || ad.plan === 'destaque_turbo';
 
   const formattedPrice =
     ad.price === 0
@@ -69,47 +62,65 @@ export const AdDetailModal: React.FC<AdDetailModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-slate-900/60">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-200 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-              {ad.category}
-            </span>
-            {isFeatured && (
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 ${planInfo.badgeColor}`}>
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{planInfo.badgeText}</span>
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 text-xs font-semibold"
-              title="Compartilhar Anúncio"
-            >
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{copiedLink ? 'Link Copiado!' : 'Compartilhar'}</span>
-            </button>
-
-            <button
-              onClick={() => onToggleFavorite(ad.id)}
-              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-              title={isFavorite ? 'Remover dos Favoritos' : 'Salvar Favorito'}
-            >
-              <Heart
-                className={`w-5 h-5 ${
-                  isFavorite ? 'fill-pink-500 text-pink-500' : ''
-                }`}
-              />
-            </button>
-
+        <div className="border-b border-slate-200 dark:border-slate-800 shrink-0 bg-slate-50 dark:bg-slate-900/90">
+          {/* Line 1: Site Name VIXI and Actions */}
+          <div className="p-3 sm:px-5 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60">
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+              className="text-lg sm:text-xl font-black tracking-tight flex items-center gap-2 text-slate-900 dark:text-white hover:opacity-90 cursor-pointer"
+              title="Voltar para a Página Inicial"
             >
-              <X className="w-5 h-5" />
+              <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-black text-base shadow-sm">
+                V
+              </div>
+              <span>VIXI</span>
             </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleShare}
+                className="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors flex items-center gap-1 text-xs font-semibold"
+                title="Compartilhar Anúncio"
+              >
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">{copiedLink ? 'Copiado!' : 'Compartilhar'}</span>
+              </button>
+
+              <button
+                onClick={() => onToggleFavorite(ad.id)}
+                className="p-1.5 sm:p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                title={isFavorite ? 'Remover dos Favoritos' : 'Salvar Favorito'}
+              >
+                <Heart
+                  className={`w-4 h-4 ${
+                    isFavorite ? 'fill-pink-500 text-pink-500' : ''
+                  }`}
+                />
+              </button>
+
+              <button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                title="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Line 2: Navigation Back Options */}
+          <div className="p-2.5 sm:px-5 flex items-center justify-between bg-white dark:bg-slate-900">
+            <button
+              onClick={onClose}
+              className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Voltar aos Anúncios / Início</span>
+            </button>
+
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+              {ad.category}
+            </span>
           </div>
         </div>
 
@@ -254,30 +265,6 @@ export const AdDetailModal: React.FC<AdDetailModalProps> = ({
                   </a>
                 </div>
               </div>
-
-              {/* Mercado Pago Boost Banner for Free Ads */}
-              {!isFeatured && (
-                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-slate-900 border border-amber-500/30 text-xs flex items-center justify-between gap-3">
-                  <div>
-                    <span className="font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5" />
-                      Aumente as vendas deste anúncio
-                    </span>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Promova com o Plano Destaque Ouro no Mercado Pago por R$ 29,90.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      onClose();
-                      onUpgradePlan(ad);
-                    }}
-                    className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs shrink-0 shadow-sm"
-                  >
-                    Destacar
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 
